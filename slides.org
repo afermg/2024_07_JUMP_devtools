@@ -1,4 +1,4 @@
-#+title: Road to JUMP Hackathon II: Electric Boogaloo
+#+title: Road to JUMP Hackathon II
 #+OPTIONS: ^:nil H:2 num:t toc:nil
 #+DATE: 2024/07/18
 #+Author: Alán F. Muñoz
@@ -14,23 +14,38 @@
 
 * Introduction: The challenges of accessing JUMP data
 ** The problem
-We have a lot of data and it is challenging to make use of it.
+- Loads of data and metadata.
+- Limited access methods, most of which are documented in notebooks across repositories.
+** The problem
+#+ATTR_LATEX: :width 0.5\textwidth
+[[./imgs/data_metadata.jpg]]
 
 ** Before we start
-We will split into two section later. Feel free to install a venv if you want to follow on your computer or test the packages limitations 
+:PROPERTIES:
+:BEAMER_opt: shrink=2
+:END:
+
+We will split into two section later.
 
 *** WSL/MacOS
-#+begin_src shell
+#+begin_example shell
 python -m venv .venv
 source .venv/bin/activate
 pip install jump_portrait 
-#+end_src
+#+end_example
 
 *** Nix
-#+begin_src shell
+#+begin_example shell
+mkdir demo
+cd demo
 nix flake init -t \
 github:broadinstitute/monorepo#portrait
-#+end_src
+#+end_example
+
+*** Test installation
+#+begin_example shell
+python -c "import jump_portrait"
+#+end_example
 
 ** What we will learn 
 - A new alternative for reproducible isolated environments
@@ -51,14 +66,16 @@ JUMP_RR (Round-Robin) Provides simple interfaces to pre-processed data:
 
 For *<crispr>*, *<orf>* and (gallery-only)  *<compounds>*.
 
-** How do we used to access each data type
+** How did we use to access each data/metadata
 - Images: AWS S3
 - Metadata: Github repository
-- Profiles: ?
-
-** Complex needs beget complex solutions
+- Profiles: AWS S3, but before this P2P 
+** Notebooks served as examples
 - External data sources use "standard ids" (i.e., NCBI), but many internal ones use Broad or JUMP ids
 - How do we link metadata to images/profiles?
+** So instead of notebooks, I build modules/libraries to make my life more pleasant
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./imgs/notebooks_vs_modules.jpg]]
 
 * Today's focus: Developers and Data Scientists
 ** Broad_babel
@@ -80,15 +97,14 @@ Main goal: Fetch JUMP images.
 *** Additional use-cases:
 - Download images and controls straight to disk
 
-** Quick demo of main features
-- Reproducible environments directly from the monorepo 
-- 
-
 ** Choose your own adventure
 You can choose what to do
-- Follow the larger demo. 
+- Follow the main demo 
 - Test the limits of jump_portrait and/or broad_babel and see if they breaks
 
+** The breaking game
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./imgs/bernie_help.jpg]]
 ** The breaking game
 - Input gene names must be present in JUMP (you can check broad.io/babel)
 - Inputs must respect documentation and typing
@@ -102,14 +118,17 @@ You can choose what to do
   - Portrait: Lazy+Anonymous S3 access via Polars 
   - Babel: Pooch to download datasets only once and keep them in disk
     
-** Some ideas
-- Brightfield fetching available but barely supported, but works for some images. Is there a way to reliably identify bright field channels?
+** Some ideas of things to pay attention to
+- These are some edge cases
+  - Brightfield fetching available but barely supported, but works for some images.
+    Is there a way to reliably identify bright field channels?
+Should we?
+  - How do we deal with invalid entries ("null", instead of "negcon" or "trt")?
 
-*** There is still data with low accessibility. 
-For instance, someone needed to get an =Images.csv=. For reasons (?).
+- There is still data with low accessibility. 
+  -For instance, someone needed to get an =Images.csv=. For reasons (?).
 
 - Should we aim to make everything fully transparent and accessible? Or only the sections that we consider "public-ready".
-
   
 ** Walkthrough 
 - Load the corrected CRISPR profiles
@@ -118,9 +137,7 @@ For instance, someone needed to get an =Images.csv=. For reasons (?).
 - Pick a feature at random (seed=42), sort it and get five JCP IDs that range from min to max.
 - Find the gene name
 - Fetch images for this gene in both CRISPR and ORF
-  
-** Potentially useful features
-- Bundled lazy loading images for model training 
+- find the other available names for these genes
   
 ** Open call for suggestions
 - What is the best way to clean test artifacts?
@@ -128,6 +145,9 @@ For instance, someone needed to get an =Images.csv=. For reasons (?).
  - joblib
  - Pathos
  - Multiprocessing
+** One final remark
+[[./imgs/is_it_worth_the_time.png]]
+
 
 ** Resources
 - Slides: github.com/afermg/2024_07_JUMP_devtools
