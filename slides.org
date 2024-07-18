@@ -1,0 +1,140 @@
+#+title: Road to JUMP Hackathon II: Electric Boogaloo
+#+OPTIONS: ^:nil H:2 num:t toc:nil
+#+DATE: 2024/07/18
+#+Author: Alán F. Muñoz
+#+LaTeX_CLASS: beamer
+#+BEAMER_THEME: metropolis
+#+BEAMER_FRAME_LEVEL: 3
+#+LATEX_HEADER: \usepackage{ragged2e}
+#+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \newenvironment{JUSTIFYRIGHT}{\begin{FlushRight}}{\end{FlushRight}}
+#+PROPERTY: header-args:bash :eval no :exports code 
+#+COLUMNS: %45ITEM %10BEAMER_env(Env) %10BEAMER_act(Act) %4BEAMER_col(Col) %8BEAMER_opt(Opt)
+
+* Introduction: The challenges of accessing JUMP data
+** The problem
+We have a lot of data and it is challenging to make use of it.
+
+** Before we start
+We will split into two section later. Feel free to install a venv if you want to follow on your computer or test the packages limitations 
+
+*** WSL/MacOS
+#+begin_src shell
+python -m venv .venv
+source .venv/bin/activate
+pip install jump_portrait 
+#+end_src
+
+*** Nix
+#+begin_src shell
+nix flake init -t \
+github:broadinstitute/monorepo#portrait
+#+end_src
+
+** What we will learn 
+- A new alternative for reproducible isolated environments
+- Some commands that facilitate working on remote servers
+- How to access JUMP data within Python
+
+** Available data 
+- Images for ~140k perturbations
+- Metadata 
+- Morphological profiles and their corrected versions
+- Non-written knowledge (e.g., which JCP IDS are controls in CRISPR dataset)
+
+** The basic needs of biologists are covered
+JUMP_RR (Round-Robin) Provides simple interfaces to pre-processed data:
+- Perturbation-to-perturbation match (broad.io/crispr)
+- Statistically significant features (broad.io/crispr_feature)
+- Image exploration (broad.io/crispr_gallery)
+
+For *<crispr>*, *<orf>* and (gallery-only)  *<compounds>*.
+
+** How do we used to access each data type
+- Images: AWS S3
+- Metadata: Github repository
+- Profiles: ?
+
+** Complex needs beget complex solutions
+- External data sources use "standard ids" (i.e., NCBI), but many internal ones use Broad or JUMP ids
+- How do we link metadata to images/profiles?
+
+* Today's focus: Developers and Data Scientists
+** Broad_babel
+Main goal: Concentrate the *essential knowledge* necessary to process JUMP perturbations.
+*** Essential use-cases:
+- Is this JUMP ID the same as this Entrez (NCBI) ID?
+- Is X a treatment or control? If the latter, which type? (yes, there are types of positive controls)
+*** Additional use-cases:
+- Can I get a mapper from JUMP IDS to gene symbols or InChiKeys?
+- Can I export the entire table for CRISPR, ORF and Compounds mapping perturbations to control type?
+  
+** JUMP_portrait
+Main goal: Fetch JUMP images.
+*** Essential use-cases:
+- What is the [Source, Batch, Plate, Well] of my perturbation with standard name X?
+- Give me the available images for [Source, Batch, Plate, Well] X.
+- Give me the control images for [Source, Batch, Plate] X.
+
+*** Additional use-cases:
+- Download images and controls straight to disk
+
+** Quick demo of main features
+- Reproducible environments directly from the monorepo 
+- 
+
+** Choose your own adventure
+You can choose what to do
+- Follow the larger demo. 
+- Test the limits of jump_portrait and/or broad_babel and see if they breaks
+
+** The breaking game
+- Input gene names must be present in JUMP (you can check broad.io/babel)
+- Inputs must respect documentation and typing
+
+- Likely bug locations:
+ - Threaded components
+ - Metadata with missing images
+ - Edge cases when 
+
+- Useful things to look out for:
+  - Portrait: Lazy+Anonymous S3 access via Polars 
+  - Babel: Pooch to download datasets only once and keep them in disk
+    
+** Some ideas
+- Brightfield fetching available but barely supported, but works for some images. Is there a way to reliably identify bright field channels?
+
+*** There is still data with low accessibility. 
+For instance, someone needed to get an =Images.csv=. For reasons (?).
+
+- Should we aim to make everything fully transparent and accessible? Or only the sections that we consider "public-ready".
+
+  
+** Walkthrough 
+- Load the corrected CRISPR profiles
+- Select the features that are also present on the ORF dataset
+- Calculate the most anticorrelated profiles
+- Pick a feature at random (seed=42), sort it and get five JCP IDs that range from min to max.
+- Find the gene name
+- Fetch images for this gene in both CRISPR and ORF
+  
+** Potentially useful features
+- Bundled lazy loading images for model training 
+  
+** Open call for suggestions
+- What is the best way to clean test artifacts?
+- Threading is a pain. Are there alternatives?
+ - joblib
+ - Pathos
+ - Multiprocessing
+
+** Resources
+- Slides: github.com/afermg/2024_07_JUMP_devtools
+- Previous slides: github.com/afermg/2024_04_hackathon_brainstorm
+
+* org-beamer-mode :noexport:
+Ensure org-beamer-mode upon save
+# local variables:
+# eval: (org-beamer-mode)
+# end:
